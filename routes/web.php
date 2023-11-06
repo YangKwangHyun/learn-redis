@@ -26,3 +26,23 @@ Route::get('videos/{id}/downloads', function($id) {
 
     return back();
 });
+
+
+
+Route::get('articles/trending', function() {
+    $trending = Redis::zrevrange('trending_articles', 0, 2);
+
+    $trending = \App\Models\Article::hydrate(
+        array_map('json_decode', $trending)
+    );
+
+    dd($trending);
+    // return $trending;
+});
+
+
+Route::get('articles/{article}', function(\App\Models\Article $article) {
+    Redis::zincrby('trending_articles', 1, $article);
+
+    return $article;
+});
