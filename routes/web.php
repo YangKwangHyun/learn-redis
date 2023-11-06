@@ -1,7 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Redis;
+
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -13,36 +13,28 @@ use Illuminate\Support\Facades\Redis;
 |
 */
 
-Route::get('videos/{id}', function ($id) {
-    $downloads = Redis::get("videos.{$id}.download");
+Route::get('/', function() {
+    // $user3Stats = [
+    //     'favorites' => 10,
+    //     'watchLaters' => 20,
+    //     'completions' => 35,
+    // ];
+    //
+    // \Illuminate\Support\Facades\Redis::hmset('user.3.stats', $user3Stats);
 
-    return view('welcome', compact('downloads'));
+    // return \Illuminate\Support\Facades\Redis::hgetall('user.1.stats');
+
+    Cache::put('foo', 'bar', 10);
+
+    return Cache::get('foo');
 });
 
-Route::get('videos/{id}/downloads', function($id) {
-    // Prepare the download.
-
-    Redis::incr("videos.{$id}.download");
-
-    return back();
+Route::get('/users/{id}/stats', function ($id) {
+    return \Illuminate\Support\Facades\Redis::hgetall("user.{$id}.stats");
 });
 
+Route::get('favorite-video', function() {
+    \Illuminate\Support\Facades\Redis::hincrby('user.1.stats', 'favorites', 1);
 
-
-Route::get('articles/trending', function() {
-    $trending = Redis::zrevrange('trending_articles', 0, 2);
-
-    $trending = \App\Models\Article::hydrate(
-        array_map('json_decode', $trending)
-    );
-
-    dd($trending);
-    // return $trending;
-});
-
-
-Route::get('articles/{article}', function(\App\Models\Article $article) {
-    Redis::zincrby('trending_articles', 1, $article);
-
-    return $article;
+    return redirect('/');
 });
