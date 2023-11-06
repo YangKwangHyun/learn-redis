@@ -1,7 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-
+use Illuminate\Support\Facades\Redis;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -14,5 +14,7 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('/', function () {
-    return view('welcome');
+    $visits = Redis::incr('visits');
+
+    return view('welcome')->withVisits($visits);
 });
