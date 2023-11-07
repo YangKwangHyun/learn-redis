@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+// use Illuminate\Support\Facades\Redis;
 
 /*
 |--------------------------------------------------------------------------
@@ -13,28 +14,23 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/', function() {
-    // $user3Stats = [
-    //     'favorites' => 10,
-    //     'watchLaters' => 20,
-    //     'completions' => 35,
-    // ];
-    //
-    // \Illuminate\Support\Facades\Redis::hmset('user.3.stats', $user3Stats);
+Route::get('/', function(){
+    return Cache::remember('articles.all', 60 * 60, function() {
+        return \App\Models\Article::all();
+    });
 
-    // return \Illuminate\Support\Facades\Redis::hgetall('user.1.stats');
 
-    Cache::put('foo', 'bar', 10);
-
-    return Cache::get('foo');
+    // return remember('articles.all', 60 * 60, function() {
+    //     return \App\Models\Article::all();
+    // });
 });
 
-Route::get('/users/{id}/stats', function ($id) {
-    return \Illuminate\Support\Facades\Redis::hgetall("user.{$id}.stats");
-});
-
-Route::get('favorite-video', function() {
-    \Illuminate\Support\Facades\Redis::hincrby('user.1.stats', 'favorites', 1);
-
-    return redirect('/');
-});
+// function remember($key, $minutes, $callback) {
+//     if($value = Redis::get($key)) {
+//         return json_decode($value);
+//     }
+//
+//     Redis::setex($key, $minutes, $value = $callback());
+//
+//     return $value;
+// }
