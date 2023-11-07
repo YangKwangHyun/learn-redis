@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+
 // use Illuminate\Support\Facades\Redis;
 
 /*
@@ -14,23 +15,44 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/', function(){
-    return Cache::remember('articles.all', 60 * 60, function() {
+interface Articles
+{
+    public function all();
+}
+
+class CacheableArticles implements Articles
+{
+    protected $articles;
+
+    public function __construct(Articles $articles)
+    {
+        $this->articles = $articles;
+    }
+
+    public function all()
+    {
+        return Cache::remember('articles.all', 60 * 60, function () {
+            return $this->articles->all();
+        });
+    }
+}
+
+class EloquentArticles implements Articles
+{
+    public function all()
+    {
         return \App\Models\Article::all();
-    });
+    }
+}
 
-
-    // return remember('articles.all', 60 * 60, function() {
-    //     return \App\Models\Article::all();
-    // });
+App::bind('Articles', function () {
+    return new CacheableArticles(new EloquentArticles);
 });
 
-// function remember($key, $minutes, $callback) {
-//     if($value = Redis::get($key)) {
-//         return json_decode($value);
-//     }
-//
-//     Redis::setex($key, $minutes, $value = $callback());
-//
-//     return $value;
-// }
+Route::get('/', function (Articles $articles) {
+    // dd($articles);
+
+    // $articles = new CacheableArticles(new Articles);
+    //
+    return $articles->all();
+});
