@@ -15,44 +15,8 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-interface Articles
-{
-    public function all();
-}
+// LessonController의 index 호출
+Route::get('/', [\App\Http\Controllers\LessonsController::class, 'index']);
 
-class CacheableArticles implements Articles
-{
-    protected $articles;
-
-    public function __construct(Articles $articles)
-    {
-        $this->articles = $articles;
-    }
-
-    public function all()
-    {
-        return Cache::remember('articles.all', 60 * 60, function () {
-            return $this->articles->all();
-        });
-    }
-}
-
-class EloquentArticles implements Articles
-{
-    public function all()
-    {
-        return \App\Models\Article::all();
-    }
-}
-
-App::bind('Articles', function () {
-    return new CacheableArticles(new EloquentArticles);
-});
-
-Route::get('/', function (Articles $articles) {
-    // dd($articles);
-
-    // $articles = new CacheableArticles(new Articles);
-    //
-    return $articles->all();
-});
+// LessonController의 show 호출
+Route::get('/lessons/{lesson}', [\App\Http\Controllers\LessonsController::class, 'show']);
